@@ -4,6 +4,10 @@ go 1.19
 
 require (
 	github.com/ethereum/go-ethereum v1.10.25
+	github.com/joho/godotenv v1.4.0
+)
+
+require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
