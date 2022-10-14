@@ -1,8 +1,11 @@
-package main
+package server
 
 import (
 	"context"
 	"fmt"
+	"github.cbhq.net/engineering/sff-workshop/internal/client"
+	"github.cbhq.net/engineering/sff-workshop/internal/config"
+	"github.cbhq.net/engineering/sff-workshop/internal/handler"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,16 +14,21 @@ import (
 )
 
 type Server struct {
-	transactionHandler *TransactionHandler
+	transactionHandler *handler.TransactionHandler
 }
 
 func NewServer() (*Server, error) {
 	ctx := context.Background()
-	cfg, err := NewConfig()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
-	transactionHandler, err := NewTransactionHandler(ctx, cfg)
+	ethClient, err := client.NewEthClient(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionHandler, err := handler.NewTransactionHandler(ctx, ethClient, cfg)
 	if err != nil {
 		return nil, err
 	}

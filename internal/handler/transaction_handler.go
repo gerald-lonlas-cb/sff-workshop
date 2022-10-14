@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"context"
@@ -12,30 +12,18 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.cbhq.net/engineering/sff-workshop/contract"
+	"github.cbhq.net/engineering/sff-workshop/internal/config"
 )
 
 type TransactionHandler struct {
-	cfg    *Config
+	cfg    *config.Config
 	client *ethclient.Client
 }
 
-func newEthClient(ctx context.Context, cfg *Config) (*ethclient.Client, error) {
-	client, err := ethclient.DialContext(
-		ctx,
-		fmt.Sprintf("https://%s:%s@goerli.ethereum.coinbasecloud.net", cfg.Username, cfg.Password),
-	)
-
-	return client, err
-}
-
-func NewTransactionHandler(ctx context.Context, cfg *Config) (*TransactionHandler, error) {
-	client, err := newEthClient(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
+func NewTransactionHandler(ctx context.Context, ethClient *ethclient.Client, cfg *config.Config) (*TransactionHandler, error) {
 	return &TransactionHandler{
 		cfg:    cfg,
-		client: client,
+		client: ethClient,
 	}, nil
 }
 
