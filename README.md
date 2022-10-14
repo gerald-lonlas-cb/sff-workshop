@@ -37,3 +37,24 @@ Example
 ```
 curl --url 'http://localhost:8081/gettoken?to=0xF820cf368b4a798b676DE9DEA90f637A9CdEE572&id=2&quantity=3'
 ```
+
+## ERC1155 Contract
+
+Install npm dependencies
+```
+make deps
+```
+
+Compile solidity contracts
+```
+make compile-contract
+```
+
+Deploy contracts
+```
+make deploy-contract
+```
+
+> Note: 
+In order to deploy, you need to create a set of MNEMONIC and add to the .env file. You will also need to fund the master key with enough gas to deploy the contract.
+You could also deploy using Remix as an alternative.
