@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.cbhq.net/engineering/sff-workshop/contract"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	"github.cbhq.net/engineering/sff-workshop/contract"
 )
 
 type TransactionHandler struct {
@@ -38,6 +39,41 @@ func NewTransactionHandler(ctx context.Context, cfg *Config) (*TransactionHandle
 	}, nil
 }
 
+func (h *TransactionHandler) GetTransactOpts(
+	ctx context.Context,
+) (*bind.TransactOpts, error) {
+	privateKey, fromAddr, err := h.privateKeyAddress()
+	if err != nil {
+		return nil, fmt.Errorf("error getting private key: %v", err)
+	}
+
+	nonce, err := h.client.PendingNonceAt(ctx, *fromAddr)
+	if err != nil {
+		return nil, fmt.Errorf("error getting nonce: %v", err)
+	}
+
+	gasPrice, err := h.client.SuggestGasPrice(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error suggesting gas price: %v", err)
+	}
+
+	chainID, err := h.client.ChainID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting chain id: %v", err)
+	}
+	opts, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		return nil, fmt.Errorf("error creating transactor : %v", err)
+	}
+
+	opts.Nonce = big.NewInt(int64(nonce))
+	opts.Value = big.NewInt(0)     // in wei
+	opts.GasLimit = uint64(300000) // in units
+	opts.GasPrice = gasPrice
+
+	return opts, nil
+}
+
 // constructUnsigned construct the unsigned transaction
 func (h *TransactionHandler) Erc1155Transfer(
 	ctx context.Context,
@@ -47,44 +83,25 @@ func (h *TransactionHandler) Erc1155Transfer(
 ) (string, error) {
 	toAddr := common.HexToAddress(to)
 
-	privateKey, fromAddr, err := h.privateKeyAddress()
+	// Get the wallet address from which we are sending the NFT
+	_, fromAddr, err := h.privateKeyAddress()
+
+	// Fill in some standard transaction options (e.g. gas limit, auth etc)
+	transactOpts, err := h.GetTransactOpts(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error getting private key: %v", err)
+		return "", fmt.Errorf("error generating transact opts", err)
 	}
 
-	nonce, err := h.client.PendingNonceAt(ctx, *fromAddr)
-	if err != nil {
-		return "", fmt.Errorf("error getting nonce: %v", err)
-	}
-
-	gasPrice, err := h.client.SuggestGasPrice(ctx)
-	if err != nil {
-		return "", fmt.Errorf("error suggesting gas price: %v", err)
-	}
-
-	chainID, err := h.client.ChainID(ctx)
-	if err != nil {
-		return "", fmt.Errorf("error getting chain id: %v", err)
-	}
-
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
-	if err != nil {
-		return "", fmt.Errorf("error creating transactor : %v", err)
-	}
-
-	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)     // in wei
-	auth.GasLimit = uint64(300000) // in units
-	auth.GasPrice = gasPrice
-
+	// Instantiate an instance of ERC1155 contract which defines our tokens and NFTs
 	contractAddr := common.HexToAddress(h.cfg.ContractAddress)
 	contractInstance, err := contract.NewContract(contractAddr, h.client)
 	if err != nil {
 		return "", fmt.Errorf("error loading contract: %v", err)
 	}
 
+	// Send the "Golden Badge" to the user's wallet
 	tx, err := contractInstance.SafeTransferFrom(
-		auth,
+		transactOpts,
 		*fromAddr,
 		toAddr,
 		big.NewInt(id),
