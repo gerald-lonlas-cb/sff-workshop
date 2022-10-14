@@ -22,7 +22,7 @@ make build
 
 Start the server using
 ```
-.bin/main 
+./bin/main 
 ```
 or
 ```
