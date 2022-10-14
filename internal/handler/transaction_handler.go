@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 
@@ -27,7 +28,7 @@ func NewTransactionHandler(ctx context.Context, ethClient *ethclient.Client, cfg
 	}, nil
 }
 
-func (h *TransactionHandler) GetTransactOpts(
+func (h *TransactionHandler) getTransactOpts(
 	ctx context.Context,
 ) (*bind.TransactOpts, error) {
 	privateKey, fromAddr, err := h.privateKeyAddress()
@@ -35,10 +36,12 @@ func (h *TransactionHandler) GetTransactOpts(
 		return nil, fmt.Errorf("error getting private key: %v", err)
 	}
 
-	nonce, err := h.client.PendingNonceAt(ctx, *fromAddr)
+	nonce, err := h.client.NonceAt(ctx, *fromAddr, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error getting nonce: %v", err)
 	}
+
+	fmt.Println(fmt.Sprintf("Retrieved nonce %d", nonce))
 
 	gasPrice, err := h.client.SuggestGasPrice(ctx)
 	if err != nil {
@@ -62,8 +65,8 @@ func (h *TransactionHandler) GetTransactOpts(
 	return opts, nil
 }
 
-// constructUnsigned construct the unsigned transaction
-func (h *TransactionHandler) Erc1155Transfer(
+// ERC1155Transfer handles ERC1155 transfer that sends the the pre-minted tokens
+func (h *TransactionHandler) ERC1155Transfer(
 	ctx context.Context,
 	to string,
 	id int64,
@@ -71,37 +74,66 @@ func (h *TransactionHandler) Erc1155Transfer(
 ) (string, error) {
 	toAddr := common.HexToAddress(to)
 
-	// Get the wallet address from which we are sending the NFT
+	// Get the wallet address from which we are sending the NFT (OFFLINE)
 	_, fromAddr, err := h.privateKeyAddress()
-
-	// Fill in some standard transaction options (e.g. gas limit, auth etc)
-	transactOpts, err := h.GetTransactOpts(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error generating transact opts", err)
+		return "", fmt.Errorf("error generating generating address: %v", err)
 	}
 
-	// Instantiate an instance of ERC1155 contract which defines our tokens and NFTs
+	// Fill in some standard transaction options (e.g. gas limit, auth etc) (ONLINE)
+	transactOpts, err := h.getTransactOpts(ctx)
+	if err != nil {
+		return "", fmt.Errorf("error generating transact opts: %v", err)
+	}
+
+	// Instantiate an instance of ERC1155 contract which defines our tokens and NFTs (OFFLINE)
 	contractAddr := common.HexToAddress(h.cfg.ContractAddress)
-	contractInstance, err := contract.NewContract(contractAddr, h.client)
+
+	// Getting the ABI (OFFLINE)
+	abi, err := contract.ContractMetaData.GetAbi()
 	if err != nil {
-		return "", fmt.Errorf("error loading contract: %v", err)
+		return "", fmt.Errorf("error getting ABI: %v", err)
 	}
 
-	// Send the "Golden Badge" to the user's wallet
-	tx, err := contractInstance.SafeTransferFrom(
-		transactOpts,
+	// Generating the txData (OFFLINE)
+	var data []byte = nil
+	txData, err := abi.Pack(
+		"safeTransferFrom",
 		*fromAddr,
 		toAddr,
 		big.NewInt(id),
 		big.NewInt(quantity),
-		nil,
+		data,
 	)
-
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error generating txData: %v", err)
 	}
 
-	return tx.Hash().Hex(), nil
+	// Create a legacy transaction using gas price (prior to London upgrade) (OFFLINE)
+	nonce := transactOpts.Nonce.Uint64()
+	baseTx := &types.LegacyTx{
+		To:       &contractAddr,
+		Nonce:    nonce,
+		GasPrice: transactOpts.GasPrice,
+		Gas:      transactOpts.GasLimit,
+		Value:    transactOpts.Value,
+		Data:     txData,
+	}
+	rawTx := types.NewTx(baseTx)
+
+	// Sign the transaction (OFFLINE)
+	signedTx, err := transactOpts.Signer(transactOpts.From, rawTx)
+	if err != nil {
+		return "", fmt.Errorf("error signing transaction: %v", err)
+	}
+
+	// Submit transaction to Cloud Node (ONLINE)
+	err = h.client.SendTransaction(transactOpts.Context, signedTx)
+	if err != nil {
+		return "", fmt.Errorf("error submitting transaction: %v", err)
+	}
+
+	return signedTx.Hash().Hex(), nil
 }
 
 func (h *TransactionHandler) privateKeyAddress() (*ecdsa.PrivateKey, *common.Address, error) {

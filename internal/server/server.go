@@ -52,7 +52,7 @@ func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	txHash, err := s.transactionHandler.Erc1155Transfer(r.Context(), to, id, quantity)
+	txHash, err := s.transactionHandler.ERC1155Transfer(r.Context(), to, id, quantity)
 	if err != nil {
 		handleError(w, err)
 		return
