@@ -1,5 +1,6 @@
 deps:
 	go get ./...
+	npm install
 
 build:
 	go build -o bin/main cmd/main.go

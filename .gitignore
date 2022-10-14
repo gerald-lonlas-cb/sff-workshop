@@ -3,3 +3,5 @@
 .envtestnet
 out/
 bin/
+
+node_modules/

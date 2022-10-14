@@ -11,22 +11,22 @@ PRIVATE_KEY=<Private key of the account currently holding the ERC1155 NFT>
 CONTRACT_ADDRESS=<Contract address of the ERC1155 NFT>
 ```
 
-Update config.go to point to that location in 
-
-```
-err := godotenv.Load("../../.env")
-```
+Create .env file in the project root dir
 
 Build the server using
 
 ```
-go mod tidy
-go build -o ./out ./src
+make dpes
+make build
 ```
 
 Start the server using
 ```
-./out
+.bin/main 
+```
+or
+```
+make run
 ```
 
 Make a request to airdrop ERC1155 tokens
