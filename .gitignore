@@ -3,3 +3,7 @@
 .envtestnet
 out/
 bin/
+
+node_modules/
+
+contract/abi

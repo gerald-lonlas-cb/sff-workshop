@@ -11,22 +11,22 @@ PRIVATE_KEY=<Private key of the account currently holding the ERC1155 NFT>
 CONTRACT_ADDRESS=<Contract address of the ERC1155 NFT>
 ```
 
-Update config.go to point to that location in 
-
-```
-err := godotenv.Load("../../.env")
-```
+Create .env file in the project root dir
 
 Build the server using
 
 ```
-go mod tidy
-go build -o ./out ./src
+make dpes
+make build
 ```
 
 Start the server using
 ```
-./out
+./bin/main 
+```
+or
+```
+make run
 ```
 
 Make a request to airdrop ERC1155 tokens
@@ -37,3 +37,24 @@ Example
 ```
 curl --url 'http://localhost:8081/gettoken?to=0xF820cf368b4a798b676DE9DEA90f637A9CdEE572&id=2&quantity=3'
 ```
+
+## ERC1155 Contract
+
+Install npm dependencies
+```
+make deps
+```
+
+Compile solidity contracts
+```
+make compile-contract
+```
+
+Deploy contracts
+```
+make deploy-contract
+```
+
+> Note: 
+In order to deploy, you need to create a set of MNEMONIC and add to the .env file. You will also need to fund the master key with enough gas to deploy the contract.
+You could also deploy using Remix as an alternative.

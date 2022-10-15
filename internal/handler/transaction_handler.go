@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.cbhq.net/engineering/sff-workshop/contract"
+	"github.cbhq.net/engineering/sff-workshop/internal/config"
+
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcutil/hdkeychain"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-
-	"github.cbhq.net/engineering/sff-workshop/contract"
-	"github.cbhq.net/engineering/sff-workshop/internal/config"
+	"github.com/tyler-smith/go-bip39"
 )
 
 type TransactionHandler struct {
@@ -137,10 +140,49 @@ func (h *TransactionHandler) ERC1155Transfer(
 }
 
 func (h *TransactionHandler) privateKeyAddress() (*ecdsa.PrivateKey, *common.Address, error) {
-	privateKey, err := crypto.HexToECDSA(h.cfg.PrivateKey)
+	seed := bip39.NewSeed(h.cfg.Mnemonic, "")
+
+	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error loading private key: %v", err)
+		return nil, nil, fmt.Errorf("error getting master key: %v", err)
 	}
+
+	// This gives the path: m/44H
+	acc44H, err := masterKey.Child(hdkeychain.HardenedKeyStart + 44)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// This gives the path: m/44H/60H
+	acc44H60H, err := acc44H.Child(hdkeychain.HardenedKeyStart + 60)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// This gives the path: m/44H/60H/0H
+	acc44H60H0H, err := acc44H60H.Child(hdkeychain.HardenedKeyStart + 0)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// This gives the path: m/44H/60H/0H/0
+	acc44H60H0H0, err := acc44H60H0H.Child(0)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// This gives the path: m/44H/60H/0H/0/0
+	acc44H60H0H00, err := acc44H60H0H0.Child(0)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	btcecPrivKey, err := acc44H60H0H00.ECPrivKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	privateKey := btcecPrivKey.ToECDSA()
 
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)

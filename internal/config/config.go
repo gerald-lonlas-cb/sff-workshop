@@ -11,6 +11,7 @@ type Config struct {
 	Password        string
 	PrivateKey      string
 	ContractAddress string
+	Mnemonic        string
 }
 
 func NewConfig() (*Config, error) {
@@ -23,5 +24,6 @@ func NewConfig() (*Config, error) {
 		Password:        os.Getenv("PASSWORD"),
 		PrivateKey:      os.Getenv("PRIVATE_KEY"),
 		ContractAddress: os.Getenv("CONTRACT_ADDRESS"),
+		Mnemonic:        os.Getenv("MNEMONIC"),
 	}, nil
 }
