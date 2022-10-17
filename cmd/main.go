@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.cbhq.net/engineering/sff-workshop/internal/server"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -12,6 +13,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
-	http.HandleFunc("/gettoken", server.GetToken)
-	log.Println(http.ListenAndServe(":8081", nil))
+	mux := http.NewServeMux()
+	corsOpts := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://127.0.0.1:4000"},
+		AllowedMethods: []string{
+			http.MethodPost,
+			http.MethodGet,
+			http.MethodOptions,
+		},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: false,
+	})
+
+	mux.HandleFunc("/gettoken", server.GetToken)
+	handler := corsOpts.Handler(mux)
+	log.Println(http.ListenAndServe(":8081", handler))
 }

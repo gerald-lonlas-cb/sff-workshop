@@ -3,15 +3,16 @@ module github.cbhq.net/engineering/sff-workshop
 go 1.19
 
 require (
+	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/ethereum/go-ethereum v1.10.25
 	github.com/joho/godotenv v1.4.0
+	github.com/rs/cors v1.7.0
 	github.com/tyler-smith/go-bip39 v1.1.0
 )
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
-	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect

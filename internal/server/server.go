@@ -3,13 +3,13 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.cbhq.net/engineering/sff-workshop/internal/client"
-	"github.cbhq.net/engineering/sff-workshop/internal/config"
-	"github.cbhq.net/engineering/sff-workshop/internal/handler"
 	"net/http"
 	"net/url"
 	"strconv"
 
+	"github.cbhq.net/engineering/sff-workshop/internal/client"
+	"github.cbhq.net/engineering/sff-workshop/internal/config"
+	"github.cbhq.net/engineering/sff-workshop/internal/handler"
 	"github.com/ethereum/go-ethereum/log"
 )
 
