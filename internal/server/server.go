@@ -10,6 +10,8 @@ import (
 	"github.cbhq.net/engineering/sff-workshop/internal/client"
 	"github.cbhq.net/engineering/sff-workshop/internal/config"
 	"github.cbhq.net/engineering/sff-workshop/internal/handler"
+	"github.cbhq.net/engineering/sff-workshop/internal/keystore"
+
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -23,12 +25,18 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	ethClient, err := client.NewEthClient(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	transactionHandler, err := handler.NewTransactionHandler(ctx, ethClient, cfg)
+	signer, err := keystore.NewSigner(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionHandler, err := handler.NewTransactionHandler(ctx, ethClient, cfg, signer)
 	if err != nil {
 		return nil, err
 	}
