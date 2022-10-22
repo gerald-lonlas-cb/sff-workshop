@@ -65,7 +65,7 @@ vi .env
 ```ini
 USERNAME=<Username of Coinbase Cloud account>
 PASSWORD=<Password of Coinbase Cloud account>
-NODEURI="goerli.ethereum.coinbasecloud.net"
+NODE_URI="goerli.ethereum.coinbasecloud.net"
 MNEMONIC=<Mnemonic of the wallet holding the ERC1155 tokens>
 CONTRACT_ADDRESS=<Contract address of the ERC1155 tokens>
 

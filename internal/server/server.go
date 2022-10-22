@@ -26,7 +26,7 @@ func NewServer() (*Server, error) {
 		return nil, err
 	}
 
-	ethClient, err := client.NewEthClient(ctx, cfg)
+	evmClient, err := client.NewEVMClient(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func NewServer() (*Server, error) {
 		return nil, err
 	}
 
-	transactionHandler, err := handler.NewTransactionHandler(ctx, ethClient, cfg, signer)
+	transactionHandler, err := handler.NewTransactionHandler(ctx, evmClient, cfg, signer)
 	if err != nil {
 		return nil, err
 	}
