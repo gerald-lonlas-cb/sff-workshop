@@ -13,7 +13,7 @@ import (
 func NewEVMClient(ctx context.Context, cfg *config.Config) (*ethclient.Client, error) {
 	client, err := ethclient.DialContext(
 		ctx,
-		fmt.Sprintf("https://%s:%s@%s", cfg.NodeURI, cfg.Username, cfg.Password),
+		fmt.Sprintf("https://%s:%s@%s", cfg.Username, cfg.Password, cfg.NodeURI),
 	)
 
 	return client, err
