@@ -7,9 +7,3 @@ build:
 
 run:
 	go run cmd/main.go
-
-compile-contract:
-	truffle compile
-
-deploy-contract:
-	truffle deploy

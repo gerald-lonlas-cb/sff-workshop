@@ -9,8 +9,8 @@ contract RockSolidToken is ERC1155 {
     uint256 public constant GoldBadge = 2;
 
     constructor() ERC1155("https://ipfs.io/ipfs/bafybeig6tvzn5thiqbspfz356vnma6v3xkzty6qevedp23wjiwu776h6wa/{id}.json") {
-        _mint(msg.sender, Points, 1000000, "");
-        _mint(msg.sender, GoldBadge, 1000, "");
+        _mint(msg.sender, Points, 1_000_000, "");
+        _mint(msg.sender, GoldBadge, 500, "");
     }
 
     function uri(uint256 _tokenid) override public pure returns (string memory) {

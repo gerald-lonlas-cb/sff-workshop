@@ -90,23 +90,7 @@ curl --url 'http://localhost:8081/gettoken?to=0xF820cf368b4a798b676DE9DEA90f637A
 # Appendix
 ## Appendix 1: Deploy your ERC-1155 Contract
 
-### 1. Install npm dependencies
-```
-make deps
-```
+You can choose to use the Remix-IDE to deploy the contract manually. Please follow the instruction [here](https://remix-ide.readthedocs.io/en/latest/create_deploy.html#deploy-the-contract)
 
-### 2. (Optional) Edit the Solidity contracts
-The ERC-1155 Smart Contract code is located in [contract/RockSolidToken.sol](contract/RockSolidToken.sol).
+You might want to use the same MNEMONIC that you specify in the .env file so that you can directly transfer from the same wallet.
 
-### 3. Compile Solidity contracts
-```
-make compile-contract
-```
-
-### 4. Deploy contracts
-```
-make deploy-contract
-```
-
-### Note 
-You will need to fund the wallet with enough gas (ETH, MATIC, ...) to deploy the contract.
