@@ -9,9 +9,8 @@ import (
 type Config struct {
 	Username        string
 	Password        string
-	PrivateKey      string
-	ContractAddress string
 	Mnemonic        string
+	ContractAddress string
 }
 
 func NewConfig() (*Config, error) {
@@ -22,8 +21,7 @@ func NewConfig() (*Config, error) {
 	return &Config{
 		Username:        os.Getenv("USERNAME"),
 		Password:        os.Getenv("PASSWORD"),
-		PrivateKey:      os.Getenv("PRIVATE_KEY"),
-		ContractAddress: os.Getenv("CONTRACT_ADDRESS"),
 		Mnemonic:        os.Getenv("MNEMONIC"),
+		ContractAddress: os.Getenv("CONTRACT_ADDRESS"),
 	}, nil
 }
