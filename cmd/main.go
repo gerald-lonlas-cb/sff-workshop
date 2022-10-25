@@ -15,7 +15,7 @@ func main() {
 	}
 	mux := http.NewServeMux()
 	corsOpts := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://127.0.0.1:4000"},
+		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{
 			http.MethodPost,
 			http.MethodGet,

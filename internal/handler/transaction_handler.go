@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.cbhq.net/engineering/sff-workshop/contract"
@@ -15,9 +16,10 @@ import (
 )
 
 type TransactionHandler struct {
-	cfg    *config.Config
-	client *ethclient.Client
-	signer keystore.Signer
+	cfg            *config.Config
+	client         *ethclient.Client
+	signer         keystore.Signer
+	inputValidator *InputValidator
 }
 
 func NewTransactionHandler(
@@ -25,11 +27,13 @@ func NewTransactionHandler(
 	ethClient *ethclient.Client,
 	cfg *config.Config,
 	signer keystore.Signer,
+	inputValidator *InputValidator,
 ) (*TransactionHandler, error) {
 	return &TransactionHandler{
-		cfg:    cfg,
-		client: ethClient,
-		signer: signer,
+		cfg:            cfg,
+		client:         ethClient,
+		signer:         signer,
+		inputValidator: inputValidator,
 	}, nil
 }
 
@@ -40,6 +44,11 @@ func (h *TransactionHandler) ERC1155Transfer(
 	id int64,
 	quantity int64,
 ) (string, error) {
+	err := h.inputValidator.CanTransfer(ctx, to, id, quantity)
+	if err != nil {
+		return "", fmt.Errorf("error checking transferability: %v", err)
+	}
+
 	unsignedTx, err := h.constructUnsignedTx(ctx, to, id, quantity)
 	if err != nil {
 		return "", fmt.Errorf("error constructing transaction: %v", err)
@@ -75,6 +84,8 @@ func (h *TransactionHandler) constructUnsignedTx(
 	if err != nil {
 		return nil, fmt.Errorf("error getting nonce: %v", err)
 	}
+
+	log.Printf("Retrieved nonce %d", nonce)
 
 	// Estimate Gas Price (ONLINE)
 	gasPrice, err := h.client.SuggestGasPrice(ctx)

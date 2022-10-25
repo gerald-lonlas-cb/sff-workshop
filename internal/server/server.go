@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,12 +12,11 @@ import (
 	"github.cbhq.net/engineering/sff-workshop/internal/config"
 	"github.cbhq.net/engineering/sff-workshop/internal/handler"
 	"github.cbhq.net/engineering/sff-workshop/internal/keystore"
-
-	"github.com/ethereum/go-ethereum/log"
 )
 
 type Server struct {
 	transactionHandler *handler.TransactionHandler
+	inputValidator     *handler.InputValidator
 }
 
 func NewServer() (*Server, error) {
@@ -36,16 +36,23 @@ func NewServer() (*Server, error) {
 		return nil, err
 	}
 
-	transactionHandler, err := handler.NewTransactionHandler(ctx, evmClient, cfg, signer)
+	inputValidator, err := handler.NewInputValidator(ctx, evmClient, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionHandler, err := handler.NewTransactionHandler(ctx, evmClient, cfg, signer, inputValidator)
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
 		transactionHandler: transactionHandler,
+		inputValidator:     inputValidator,
 	}, nil
 }
 
 func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received GetToken request")
 	query := r.URL.Query()
 
 	to := query.Get("to")
@@ -65,9 +72,12 @@ func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	_, writeErr := w.Write([]byte(fmt.Sprintf("Transaction hash: %s", txHash)))
+
+	res := fmt.Sprintf("Transaction hash: %s", txHash)
+	log.Println(res)
+	_, writeErr := w.Write([]byte(res))
 	if writeErr != nil {
-		log.Error(fmt.Sprintf("Error writing response %v", writeErr))
+		log.Printf("Error writing response %v", writeErr)
 	}
 }
 
@@ -80,6 +90,6 @@ func handleError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	_, writeErr := w.Write([]byte(fmt.Sprintf("500 - Internal Server Error %v", err)))
 	if writeErr != nil {
-		log.Error(fmt.Sprintf("Error writing error response %v", writeErr))
+		log.Printf("Error writing error response %v", writeErr)
 	}
 }
