@@ -46,7 +46,7 @@ func (h *TransactionHandler) ERC1155Transfer(
 ) (string, error) {
 	err := h.inputValidator.CanTransfer(ctx, to, id, quantity)
 	if err != nil {
-		return "", fmt.Errorf("error checking transferability: %v", err)
+		return "", fmt.Errorf("not transferable: %v", err)
 	}
 
 	unsignedTx, err := h.constructUnsignedTx(ctx, to, id, quantity)
@@ -80,7 +80,7 @@ func (h *TransactionHandler) constructUnsignedTx(
 	contractAddr := common.HexToAddress(h.cfg.ContractAddress)
 
 	// Retrieve nonce for fromAddress (ONLINE)
-	nonce, err := h.client.NonceAt(ctx, fromAddr, nil)
+	nonce, err := h.client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
 		return nil, fmt.Errorf("error getting nonce: %v", err)
 	}
@@ -88,10 +88,13 @@ func (h *TransactionHandler) constructUnsignedTx(
 	log.Printf("Retrieved nonce %d", nonce)
 
 	// Estimate Gas Price (ONLINE)
-	gasPrice, err := h.client.SuggestGasPrice(ctx)
+	suggestedGasPrice, err := h.client.SuggestGasPrice(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error suggesting gas price: %v", err)
 	}
+	gasPrice := big.NewInt(suggestedGasPrice.Int64() * 2)
+
+	log.Printf("Suggested gas %d, used gas %d", suggestedGasPrice.Int64(), gasPrice.Int64())
 
 	// Getting the Contract ABI (OFFLINE)
 	contractAbi, err := contract.ContractMetaData.GetAbi()

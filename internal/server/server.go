@@ -14,9 +14,23 @@ import (
 	"github.cbhq.net/engineering/sff-workshop/internal/keystore"
 )
 
+type getTokenRequest struct {
+	ctx        context.Context
+	to         string
+	id         int64
+	quantity   int64
+	resChannel chan *getTokenResponse
+}
+
+type getTokenResponse struct {
+	res string
+	err error
+}
+
 type Server struct {
 	transactionHandler *handler.TransactionHandler
 	inputValidator     *handler.InputValidator
+	queue              chan *getTokenRequest
 }
 
 func NewServer() (*Server, error) {
@@ -45,10 +59,16 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Server{
+
+	queue := make(chan *getTokenRequest, 500)
+	s := &Server{
 		transactionHandler: transactionHandler,
 		inputValidator:     inputValidator,
-	}, nil
+		queue:              queue,
+	}
+	go s.startTransactionProcessor(queue)
+
+	return s, nil
 }
 
 func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
@@ -67,13 +87,21 @@ func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	txHash, err := s.transactionHandler.ERC1155Transfer(r.Context(), to, id, quantity)
-	if err != nil {
-		handleError(w, err)
+	resChannel := make(chan *getTokenResponse, 1)
+	req := &getTokenRequest{
+		ctx:        r.Context(),
+		to:         to,
+		id:         id,
+		quantity:   quantity,
+		resChannel: resChannel,
+	}
+	s.queue <- req
+	result := <-resChannel
+	if result.err != nil {
+		handleError(w, result.err)
 		return
 	}
-
-	res := fmt.Sprintf("Transaction hash: %s", txHash)
+	res := result.res
 	log.Println(res)
 	_, writeErr := w.Write([]byte(res))
 	if writeErr != nil {
@@ -88,8 +116,20 @@ func getInt64(query *url.Values, field string) (int64, error) {
 
 func handleError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
-	_, writeErr := w.Write([]byte(fmt.Sprintf("500 - Internal Server Error %v", err)))
+	_, writeErr := w.Write([]byte(fmt.Sprintf("%v", err)))
 	if writeErr != nil {
 		log.Printf("Error writing error response %v", writeErr)
+	}
+}
+
+func (s *Server) startTransactionProcessor(queue chan *getTokenRequest) {
+	for {
+		req := <-queue
+		log.Printf("Received request from queue %v", req)
+		txHash, err := s.transactionHandler.ERC1155Transfer(req.ctx, req.to, req.id, req.quantity)
+		req.resChannel <- &getTokenResponse{
+			res: txHash,
+			err: err,
+		}
 	}
 }
