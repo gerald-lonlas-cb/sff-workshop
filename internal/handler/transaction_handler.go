@@ -46,7 +46,7 @@ func (h *TransactionHandler) ERC1155Transfer(
 ) (string, error) {
 	err := h.inputValidator.CanTransfer(ctx, to, id, quantity)
 	if err != nil {
-		return "", fmt.Errorf("not transferable: %v", err)
+		return "", err
 	}
 
 	unsignedTx, err := h.constructUnsignedTx(ctx, to, id, quantity)
@@ -92,7 +92,7 @@ func (h *TransactionHandler) constructUnsignedTx(
 	if err != nil {
 		return nil, fmt.Errorf("error suggesting gas price: %v", err)
 	}
-	gasPrice := big.NewInt(suggestedGasPrice.Int64() * 2)
+	gasPrice := big.NewInt(int64(float64(suggestedGasPrice.Int64()) * 1.5))
 
 	log.Printf("Suggested gas %d, used gas %d", suggestedGasPrice.Int64(), gasPrice.Int64())
 

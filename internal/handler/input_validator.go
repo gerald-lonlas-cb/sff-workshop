@@ -75,7 +75,7 @@ func (v *InputValidator) CanTransfer(
 		return fmt.Errorf("unrecognized token id")
 	}
 	if quantity > limitSetting.transfer {
-		return fmt.Errorf("transfer quantity exceeding limit")
+		return fmt.Errorf("transfer limit exceeded")
 	}
 	callOpts := &bind.CallOpts{
 		Pending: false,
@@ -96,7 +96,7 @@ func (v *InputValidator) CanTransfer(
 	newBal.Add(balance, big.NewInt(quantity))
 	log.Printf("New balance: %v", newBal)
 	if newBal.Cmp(big.NewInt(limitSetting.ownership)) > 0 {
-		return fmt.Errorf("address will exceed ownership limit after transfer")
+		return fmt.Errorf("ownership limit exceeded")
 	}
 	return nil
 }
