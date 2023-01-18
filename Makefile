@@ -3,7 +3,7 @@ deps:
 	npm install
 
 build:
-	go build -o bin/main cmd/main.go
+	./build.sh
 
 run:
-	go run cmd/main.go
+	go run cmd/main.go -port 8081

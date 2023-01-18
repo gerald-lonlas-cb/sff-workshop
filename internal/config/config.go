@@ -19,10 +19,12 @@ type Config struct {
 	MaxPointTransferQty     int64
 }
 
-func NewConfig() (*Config, error) {
-	err := godotenv.Load(".env")
-	if err != nil {
-		return nil, err
+func NewConfig(port *int) (*Config, error) {
+	if *port != -1 {
+		err := godotenv.Load(".env")
+		if err != nil {
+			return nil, err
+		}
 	}
 	maxGoldBadgeTotalQty, err := strconv.ParseInt(os.Getenv("MAX_GOLD_BADGE_TOTAL_QUANTITY"), 10, 64)
 	if err != nil {

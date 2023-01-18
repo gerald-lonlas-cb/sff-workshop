@@ -1,15 +1,20 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.cbhq.net/engineering/sff-workshop/internal/server"
+	"github.com/apex/gateway"
 	"github.com/rs/cors"
 )
 
 func main() {
-	server, err := server.NewServer()
+	port := flag.Int("port", -1, "port for local http dev")
+	flag.Parse()
+	server, err := server.NewServer(port)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
@@ -25,7 +30,13 @@ func main() {
 		AllowCredentials: false,
 	})
 
-	mux.HandleFunc("/gettoken", server.GetToken)
+	mux.HandleFunc("/api/gettoken", server.GetToken)
 	handler := corsOpts.Handler(mux)
-	log.Println(http.ListenAndServe(":8081", handler))
+
+	if *port != -1 {
+		portStr := fmt.Sprintf(":%d", *port)
+		log.Println(http.ListenAndServe(portStr, handler))
+	} else {
+		log.Println(gateway.ListenAndServe("n/a", handler))
+	}
 }

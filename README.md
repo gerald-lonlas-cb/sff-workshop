@@ -91,6 +91,13 @@ Example
 curl --url 'http://localhost:8081/gettoken?to=0xF820cf368b4a798b676DE9DEA90f637A9CdEE572&id=2&quantity=3'
 ```
 
+## 4. Netlify vs Local
+We can use import from Git function of Netlify for deployment. Netlify uses build.sh and netlify.toml files to build and publish the server. 
+
+When running on Netlify, we don't pass -port option to the run time argument (port will be defaulted to -1 in this case). The logic in main.go will transform the http server into a lambda to be run on Netlify. In config.go we won't call godotenv.Load(".env") as the environment variables are set from Netlify config instead of .env file.
+
+When running locally, we need to pass -port option and a normal http server will be started on that port, allowing us to test locally without the need for AWS lambda simulator. In config.go we will call godotenv.Load(".env") to set environment variables using .env file.
+
 # Appendix
 ## Appendix 1: Deploy your ERC-1155 Contract
 

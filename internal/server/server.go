@@ -33,9 +33,9 @@ type Server struct {
 	queue              chan *getTokenRequest
 }
 
-func NewServer() (*Server, error) {
+func NewServer(port *int) (*Server, error) {
 	ctx := context.Background()
-	cfg, err := config.NewConfig()
+	cfg, err := config.NewConfig(port)
 	if err != nil {
 		return nil, err
 	}
