@@ -4,7 +4,7 @@
   publish = "public"
 
 [build.environment]
-  GO_IMPORT_PATH = "github.com/ng0021an/nus-workshop"
+  GO_IMPORT_PATH = "github.com/glonlas/sff-pre-auth"
   GO111MODULE = "on"
 
 [[redirects]]
