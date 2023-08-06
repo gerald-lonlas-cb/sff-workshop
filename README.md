@@ -190,9 +190,10 @@ curl -X GET 'http://localhost:8081/api/getOrderStatus?order_id=1'
 **Result:** The status returned should be 0
 
 As per the smart contract the status enun is:
-0: PENDING
-1: REDEEMED
-2: CANCELLED
+
+- 0: PENDING
+- 1: REDEEMED
+- 2: CANCELLED
 
 ### 4.3 Cancel the order
 
