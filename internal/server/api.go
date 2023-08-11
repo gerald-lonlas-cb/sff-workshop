@@ -286,7 +286,7 @@ func (s *Server) MintTokens(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received MintTokens request")
 	
 	// Define the required parameter names for this GET API
-	requiredParams := []string{"customer_id", "quantity",}
+	requiredParams := []string{"customer_id", "token_id", "quantity",}
 	
 	// Receive GET parameters and verify them
 	query := r.URL.Query()
